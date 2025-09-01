@@ -1,0 +1,44 @@
+@font-face {
+  font-family: 'Berkeley Mono';
+  font-style: normal;
+  font-weight: 100 500;
+  src:
+    url('./fonts/BerkeleyMono-Regular.woff') format('woff'),
+    url('./fonts/BerkeleyMono-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Berkeley Mono';
+  font-weight: bold;
+  src:
+    url('./fonts/BerkeleyMono-Bold.woff') format('woff'),
+    url('./fonts/BerkeleyMono-Bold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Berkeley Mono';
+  font-style: italic;
+  src:
+    url('./fonts/BerkeleyMono-Italic.woff') format('woff'),
+    url('./fonts/BerkeleyMono-Italic.woff2') format('woff2');
+}
+
+
+@font-face {
+  font-family: 'Berkeley Mono';
+  font-style: italic;
+  font-weight: bold;
+  src:
+    url('./fonts/BerkeleyMono-BoldItalic.woff') format('woff'),
+    url('./fonts/BerkeleyMono-BoldItalic.woff2') format('woff2');
+}
+
+:root {
+  --rp-c-brand: #f00;
+  --rp-font-family-base: "Berkeley Mono", monospace;
+  --rp-font-family-mono: "Berkeley Mono", monospace;
+}
+
+.rspress-nav-search-button div {
+  font-size: x-small;
+}
