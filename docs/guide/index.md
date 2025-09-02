@@ -4,13 +4,27 @@ Get started with Wuzzy, a decentralized web crawling and search system built on 
 
 ## Prerequisites
 
-- Access to [AOS (Actor Oriented System)](https://cookbook_ao.arweave.net/)
-- Basic understanding of Lua and AO message passing
-- An AO wallet with some tokens for spawning processes
+- AOS Installed -> [AOS (Actor Oriented System)](https://cookbook_ao.arweave.net/)
+- Node v22+
+- An Arweave wallet
+- [Wuzzy AO](https://github.com/memetic-block/wuzzy-ao) Repository
 
 ## Step 1: Setting Up Your Environment
 
-First, start an AOS session in your terminal:
+First, clone the Wuzzy AO repository and install it:
+```bash
+git clone https://github.com/memetic-block/wuzzy-ao
+cd wuzzy-ao
+npm install
+```
+
+Next, we'll bundle the source code to prepare them for deployment:
+```bash
+npm run bundle
+```
+The `bundle` command creates a directory `dist` which contains the bundled lua code ready for deployment.
+
+Then, start an AOS session in your terminal, filling in your hyperbeam node url of choice & giving the process a name:
 
 ```bash
 aos myWuzzyNest --url https://some.hyperbeam.node
@@ -18,238 +32,231 @@ aos myWuzzyNest --url https://some.hyperbeam.node
 
 > **Important:** When prompted to choose a runtime environment, select **`hyper-aos`**. Wuzzy relies on the use of the `~relay@1.0` device to issue web requests.
 
-This creates a new AO process that will serve as your Wuzzy Nest (search index).
+This creates a new AO process that will serve as your **Wuzzy Nest** (search index).
+Take note of the process ID as we'll need it later.
 
 ## Step 2: Deploy the Wuzzy Nest
 
-Load the Wuzzy Nest contract into your process:
+Once aos has loaded and you see the prompt you can load the Wuzzy Nest lua code into your process:
 
-```lua
--- Load the Wuzzy Nest module
-.load-blueprint wuzzy-nest
+```bash
+.load dist/wuzzy-nest/process.lua
 ```
 
-Your Nest is now initialized and ready to:
-- Index documents from crawlers
-- Provide search functionality
-- Manage crawler instances
-- Handle crawl task distribution
+Your Nest is now initialized and ready to index documents from crawlers & provide search functionality!
 
 ## Step 3: Create Your First Crawler
 
-You can create a crawler in two ways:
+In another terminal, open up another AOS process:
 
-### Option A: Spawn a New Crawler (Recommended)
-
-Let the Nest automatically spawn and configure a new crawler:
-
-```lua
--- Create a new crawler
-Send({
-  Target = ao.id,  -- Send to your Nest process
-  Action = "Create-Crawler",
-  ["Crawler-Name"] = "My First Crawler"
-})
+```bash
+aos myWuzzyCrawler --url https://some.hyperbeam.node
 ```
 
-Wait for the response to get your crawler ID:
+Once aos has loaded and you see the prompt you can load the **Wuzzy Crawler** lua code into your process:
 
-```lua
--- Check for the spawned crawler response
-Inbox[#Inbox]
--- Look for action = "Crawler-Spawned" and note the Crawler-Id
+```bash
+.load dist/wuzzy-crawler/process.lua
 ```
 
-### Option B: Add an Existing Crawler
-
-If you already have a crawler process, register it with your Nest:
-
-```lua
-Send({
-  Target = ao.id,
-  Action = "Add-Crawler",
-  ["Crawler-Id"] = "your-crawler-process-id",
-  ["Crawler-Name"] = "My Existing Crawler"
-})
+After the lua code has loaded, we'll need to set the crawler's `NestId` so that it knows where to submit documents it crawls.
+```bash
+send({ target = id, action = 'Set-Nest-Id', ['nest-id'] = '<wuzzy nest id from earlier>' })
 ```
+
+Back in the **Wuzzy Nest** process, we'll have to grant permission for the new crawler to submit documents:
+```bash
+send({ target = id, action = 'Add-Crawler', ['crawler-id'] = '<wuzzy crawler id we just spawned>' })
+```
+
+You can repeat this step to spawn multiple crawlers.
 
 ## Step 4: Configure Crawl Tasks
 
-Add URLs for your crawler to process. Currently, Wuzzy supports Arweave-based URLs:
+Add URLs for your Crawler to process.  URLs can be http, https, arns, or ar protocol schemes:
 
 ```lua
--- Add crawl tasks to your Nest
-Send({
-  Target = ao.id,
-  Action = "Add-Crawl-Tasks",
-  Data = "arns://example.ar.io\nar://abc123def456ghi789"
-})
+send({ target = id, action = 'Add-Crawl-Tasks', data = 'https://cookbook_ao.arweave.net' })
 ```
 
+Multiple tasks can be added by separating them with a newline.
+
 **Supported URL formats:**
+- `http://domain.com` - HTTP
+- `https://secure-domain.com` - HTTPS
 - `arns://domain.ar.io` - Arweave Name System domains
 - `ar://transaction-id` - Direct Arweave transaction URLs
 
-## Step 5: Configure Your Crawler
+## Step 5: Start Crawling
 
-If you spawned a new crawler, connect to it and add specific crawl tasks:
+As `Cron` is not currently available to `hyper-aos`, we can send these messages ourselves, or from an automated script.
 
-```lua
--- Start a new AOS session for your crawler
--- aos myCrawler --process-id your-crawler-id
-
--- Or send messages to configure it remotely
-Send({
-  Target = "your-crawler-id",
-  Action = "Set-Nest-Id",
-  ["Nest-Id"] = ao.id  -- Your Nest process ID
-})
-
--- Add specific crawl tasks to the crawler
-Send({
-  Target = "your-crawler-id",
-  Action = "Add-Crawl-Tasks",
-  Data = "https://example.com\nhttps://another-site.com"
-})
-```
-
-## Step 6: Start Crawling
-
-Trigger the crawling process manually or set up automated crawling:
-
-### Manual Crawling
-
-```lua
--- Request immediate crawl of a specific URL
-Send({
-  Target = "your-crawler-id",
-  Action = "Request-Crawl",
-  URL = "https://example.com"
-})
-```
-
-### Automated Crawling (Recommended)
-
-Set up cron-based crawling for continuous operation:
-
+For example, from inside the crawler process, you can trigger `Cron` manually:
 ```bash
-# Start your crawler with cron scheduling
-aos myCrawler --process-id your-crawler-id --cron 5-minutes
+send({ target = id, action = 'Cron' })
 ```
 
-This will automatically trigger the crawler every 5 minutes to process its crawl queue.
+You'll see some output that your crawler has added its crawl tasks to the queue and has requested the first task from the relay device.
 
-## Step 7: Search Your Index
+When receiving a `Cron` message, the Crawler will first check if there are any items in the Crawl Queue.
+If there are no items in the Crawl Queue, the Crawler will populate the Crawl Queue with all items in its Crawl Tasks.
+If there are items in the Crawl Queue, the Crawler will pop it from the queue and request the URL from the relay device.
 
-Once your crawler has indexed some content, you can search it:
+When it receives a response from the relay device, the Crawler will parse the HTML for text content, meta description, title, and any links the page contains.
+If a link is under a domain in a crawler's Crawl Tasks, it'll add it to the queue.
 
-```lua
--- Simple text search
-Send({
-  Target = ao.id,  -- Your Nest process
-  Action = "Search",
-  Query = "web crawling",
-  ["Search-Type"] = "simple"
-})
+Currently the Crawler will index `text/html` and `text/plain` content types.
+In a future update, the Crawler will be able to identify other content types and forward them to an appropriate Classifier for analysis (i.e. images, video, audio)
+In another future update, the Crawler will be able to send scraped text content to LLM Classifiers, which can ssubsequently update the document in the Nest to include semantic descriptions, further empowering search capabilities.
 
--- Advanced BM25 search (better relevance ranking)
-Send({
-  Target = ao.id,
-  Action = "Search",
-  Query = "decentralized search",
-  ["Search-Type"] = "bm25"
-})
+## Step 6: Search Your Index
 
--- Check the search results
-Inbox[#Inbox].Data
--- This will contain JSON with your search results
+Once your Wuzzy Nest has some indexed content, you can search it by using Hyperbeam's HTTP API and the Wuzzy Nest view module.
+
+View module id: `NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc`
+
+To issue a BM25 search for query "hyperbeam":
+```bash
+curl "https://some.hyperbeam.node/<YOUR WUZZY NEST ID>/now/~lua@5.3a&module=NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc/search_bm25/serialize~json@1.0?query=hyperbeam
 ```
 
-### Search Response Format
+Search results are returned as a flat JSON structure:
 
-Search results are returned as JSON:
+```typescript
+export interface WuzzyNestSearchResults {
+  search_type: string
+  total_hits: number
+  has_more: 'true' | 'false'
+  from: number
+  page_size: number
+  result_count: number
 
-```json
-{
-  "SearchType": "bm25",
-  "Hits": [
-    {
-      "DocumentId": "https://example.com/page",
-      "Title": "Example Page",
-      "Description": "This is an example page",
-      "URL": "https://example.com/page",
-      "Score": 1.25,
-      "Content": "Page content..."
-    }
-  ],
-  "TotalCount": 1
+  [key: `${number}_docid`]: string
+  [key: `${number}_title`]: string | undefined
+  [key: `${number}_description`]: string | undefined
+  [key: `${number}_content`]: string
+  [key: `${number}_count`]: number
+  [key: `${number}_score`]: number
 }
 ```
 
-## Step 8: Monitor Your System
+By default only 10 results are returned, but you can request subsequent pages by adding the `from` query parameter:
+
+```bash
+curl "https://some.hyperbeam.node/<YOUR WUZZY NEST ID>/now/~lua@5.3a&module=NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc/search_bm25/serialize~json@1.0?query=hyperbeam&from=10
+```
+
+Search queries are case-insensitive and will include the text context (typically ~100 chars before and after), as well as wrapping matches in html tags for highlighting in results.
+
+## Step 7: Monitor Your Nest & Crawlers
 
 ### Check Nest Status
 
-```lua
--- Get overall system state
-Send({
-  Target = ao.id,
-  Action = "Get-State"
-})
+Using the Hyperbeam HTTP API, you can check the status of your nest using the same view module from the previous step & calling the `nest_info` function:
 
--- Get basic info and statistics
-Send({
-  Target = ao.id,
-  Action = "Get-Info"
-})
+```bash
+curl "https://some.hyperbeam.node/<YOUR WUZZY NEST ID>/now/~lua@5.3a&module=NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc/nest_info/serialize~json@1.0
+```
+
+You'll get a flat JSON structure in response with information about the Nest's stats, its crawlers, and documents it contains:
+
+```typescript
+export interface WuzzyNestInfo {
+  owner: string
+  average_document_term_length: number
+  total_content_length: number
+  total_crawlers: number
+  total_documents: number
+  total_term_count: number
+
+  [key: `crawler_${number}_creator`]: string
+  [key: `crawler_${number}_id`]: string
+  [key: `crawler_${number}_name`]: string
+  [key: `crawler_${number}_owner`]: string
+
+  [key: `document_${number}_id`]: string
+  [key: `document_${number}_url`]: string
+  [key: `document_${number}_title`]: string | undefined
+  [key: `document_${number}_description`]: string | undefined
+  [key: `document_${number}_content_length`]: number
+  [key: `document_${number}_content_type`]: string
+  [key: `document_${number}_term_count`]: number
+  [key: `document_${number}_last_crawled_at`]: string
+}
 ```
 
 ### Check Crawler Status
 
-```lua
--- Get crawler state
-Send({
-  Target = "your-crawler-id",
-  Action = "Get-State"
-})
+Similarly, you can use the Hyperbeam HTTP API with the crawler view module & calling the `crawler_info` function:
+
+Crawler view module: `ZK1AXFffVJ2XNNIt5-s6NsI7r_nrsatoRdHyqSKs6xk`
+
+```bash
+curl "https://some.hyperbeam.node/<YOUR WUZZY CRAWLER ID>/now/~lua@5.3a&module=ZK1AXFffVJ2XNNIt5-s6NsI7r_nrsatoRdHyqSKs6xk/crawler_info/serialize~json@1.0
+```
+
+You'll get a flat JSON structure in response with information about the Crawler's info, its Crawl Tasks, the current Crawl Queue, and any Crawled URLs it is retaining in its Crawl Memory:
+
+```typescript
+export interface WuzzyCrawlerInfo {
+  owner: string
+  nest_id: string
+  gateway: string
+  total_crawl_tasks: number
+  crawl_queue_size: number
+  crawled_urls_memory_size: number
+
+  [key: `crawl_queue_item_${number}_domain`]: string
+  [key: `crawl_queue_item_${number}_url`]: string
+
+  [key: `crawl_task_${number}_url`]: string
+  [key: `crawl_task_${number}_added_by`]: string
+  [key: `crawl_task_${number}_domain`]: string
+  [key: `crawl_task_${number}_submitted_url`]: string
+
+  [key: `crawled_url_${number}`]: string
+}
 ```
 
 ## Advanced Configuration
 
-### Setting Up Multiple Crawlers
-
-Scale your crawling by adding multiple crawlers for different domains:
-
-```lua
--- Create specialized crawlers
-Send({ Target = ao.id, Action = "Create-Crawler", ["Crawler-Name"] = "Documentation Crawler" })
-Send({ Target = ao.id, Action = "Create-Crawler", ["Crawler-Name"] = "Blog Crawler" })
-Send({ Target = ao.id, Action = "Create-Crawler", ["Crawler-Name"] = "News Crawler" })
-```
-
 ### Access Control
 
-Manage who can perform various operations:
+Both the Wuzzy Nest and Wuzzy Crawler contain ACL functionality.  By default, the owner has access to all actions.  You can authorize another user or process to perform an action by sending an `Update-Roles` message to the Nest or Crawler:
 
 ```lua
--- Grant search permissions to specific users
-Send({
-  Target = ao.id,
-  Action = "Update-Roles",
-  Data = json.encode({
+-- Grant "Add-Crawl-Tasks" permission to a user or process id
+send({
+  target = id
+  action = "Update-Roles",
+  data = json.encode({
     Grant = {
-      ["user-process-id"] = { "Search", "Get-Info" }
+      ["user address or process id"] = { "Add-Crawl-Tasks" }
     }
   })
 })
 
--- Grant crawler management permissions
-Send({
-  Target = ao.id,
-  Action = "Update-Roles",
-  Data = json.encode({
+-- Revoke "Add-Crawl-Tasks" permission from a user or process id
+send({
+  target = id,
+  action = "Update-Roles",
+  data = json.encode({
+    Revoke = {
+      ["user address or process id"] = { "Add-Crawl-Tasks" }
+    }
+  })
+})
+```
+
+You can also add a user or process as an `admin` which allows them to perform all actions:
+
+```lua
+send({
+  target = id,
+  action = "Update-Roles",
+  data = json.encode({
     Grant = {
-      ["admin-process-id"] = { "Create-Crawler", "Add-Crawl-Tasks" }
+      ['user address or process id'] = { 'admin' }
     }
   })
 })
@@ -259,17 +266,17 @@ Send({
 
 ```lua
 -- Remove specific documents from the index
-Send({
-  Target = ao.id,
-  Action = "Remove-Document",
-  ["Document-Id"] = "https://example.com/page"
+send({
+  target = id,
+  action = "Remove-Document",
+  ["document-id"] = "https://example.com/page"
 })
 
 -- Remove crawl tasks
-Send({
-  Target = ao.id,
-  Action = "Remove-Crawl-Tasks",
-  Data = "arns://old-site.ar.io"
+send({
+  target = id,
+  action = "Remove-Crawl-Tasks",
+  data = "arns://old-site.ar.io"
 })
 ```
 
@@ -291,19 +298,6 @@ Send({
    - Check ACL roles and permissions
    - Ensure messages are being sent from authorized processes
 
-### Debugging Commands
-
-```lua
--- Check recent messages
-Inbox[#Inbox]
-
--- View process state
-ao.result()
-
--- Check crawler queue status
-Send({ Target = "crawler-id", Action = "Get-State" })
-```
-
 ## Next Steps
 
 - Explore the [full API documentation](../api/) for advanced features
@@ -311,36 +305,3 @@ Send({ Target = "crawler-id", Action = "Get-State" })
 - Implement custom search interfaces
 - Scale your system with multiple specialized crawlers
 - Integrate with external data sources through AO's ecosystem
-
-## Example: Complete Setup Script
-
-Here's a complete script to set up a basic Wuzzy instance:
-
-```lua
--- 1. Load Wuzzy Nest
-.load-blueprint wuzzy-nest
-
--- 2. Create a crawler
-Send({ Target = ao.id, Action = "Create-Crawler", ["Crawler-Name"] = "Main Crawler" })
-
--- Wait for response, then note the Crawler-Id
-
--- 3. Add crawl tasks
-Send({
-  Target = ao.id,
-  Action = "Add-Crawl-Tasks",
-  Data = "arns://cookbook.ao.arweave.net\nar://your-content-txid"
-})
-
--- 4. Configure the crawler (replace with actual crawler ID)
-local crawlerId = "your-crawler-process-id"
-Send({ Target = crawlerId, Action = "Set-Nest-Id", ["Nest-Id"] = ao.id })
-
--- 5. Start crawling
-Send({ Target = crawlerId, Action = "Request-Crawl", URL = "arns://cookbook.ao.arweave.net" })
-
--- 6. Search after content is indexed
-Send({ Target = ao.id, Action = "Search", Query = "ao cookbook", ["Search-Type"] = "bm25" })
-```
-
-This quickstart guide gets you up and running with a basic Wuzzy search system. For production deployments, consider implementing proper monitoring, error handling, and scalability planning.

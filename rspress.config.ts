@@ -6,8 +6,8 @@ export default defineConfig({
   title: 'Wuzzy Docs',
   icon: '/wuzzy.png',
   logo: {
-    light: '/rspress-light-logo.png',
-    dark: '/rspress-dark-logo.png',
+    light: '/wuzzy.png',
+    dark: '/wuzzy.png',
   },
   globalStyles: path.join(__dirname, './styles/wuzzy.css'),
   themeConfig: {

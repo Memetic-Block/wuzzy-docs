@@ -13,6 +13,8 @@
     "rspress": "^1.40.2"
   },
   "devDependencies": {
+    "@ar.io/sdk": "^3.18.3",
+    "@ardrive/turbo-sdk": "^1.30.0",
     "@eslint/js": "^9.19.0",
     "@types/node": "^18.11.17",
     "eslint": "^9.19.0",

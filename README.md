@@ -1,4 +1,6 @@
-# Rspress website
+# Wuzzy Docs
+
+Check out the docs deployed on Arweave at [https://docs_wuzzy.arweave.net](https://docs_wuzzy.arweave.net)
 
 ## Setup
 

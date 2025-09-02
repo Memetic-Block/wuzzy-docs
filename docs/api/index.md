@@ -20,7 +20,6 @@ The Nest is the central hub that:
 - Maintains the document index
 - Provides search functionality (simple and BM25)
 - Manages crawler instances
-- Handles crawl task distribution
 
 ### Wuzzy Crawler
 Crawlers are autonomous processes that:
@@ -51,19 +50,19 @@ Indexes a document in the search database.
 **Required Roles**: `owner`, `admin`, `Index-Document`
 
 **Parameters**:
-- `Document-URL` (string): The URL of the document to index, used as `Document-Id`
-- `Document-Last-Crawled-At` (string): Timestamp when the document was crawled
-- `Document-Content-Type` (string): MIME type of the document
+- `document-url` (string): The URL of the document to index, used as `document-id`
+- `document-last-crawled-at` (string): The `date` header from the relay device response
+- `document-content-type` (string): MIME type of the document
 - `data` (string): The content of the document
-- `Document-Title` (string, optional): Title of the document
-- `Document-Description` (string, optional): Description/summary of the document
+- `document-title` (string, optional): Title of the document
+- `document-description` (string, optional): Description/summary of the document
 
 **Response**:
 ```lua
 {
   target = sender,
   action = 'Index-Document-Result',
-  ['Document-Id'] = documentId, -- from Document-URL
+  ['document-id'] = documentId, -- from document-url
   data = 'OK'
 }
 ```
@@ -74,11 +73,11 @@ send({
   target = nestId,
   action = 'Index-Document',
   data = 'This is the content of my web page...',
-  ['Document-URL'] = 'https://example.com/page', -- will be used as Document-Id
-  ['Document-Last-Crawled-At'] = '1629123456',
-  ['Document-Content-Type'] = 'text/html',
-  ['Document-Title'] = 'Example Page',
-  ['Document-Description'] = 'This is an example page'
+  ['document-url'] = 'https://example.com/page', -- will be used as Document-Id
+  ['document-last-crawled-at'] = '1629123456',
+  ['document-content-type'] = 'text/html',
+  ['document-title'] = 'Example Page',
+  ['document-description'] = 'This is an example page'
 })
 ```
 
@@ -91,14 +90,14 @@ Removes a document from the search index.
 **Required Roles**: `owner`, `admin`, `Remove-Document`
 
 **Parameters**:
-- `Document-Id` (string): The ID of the document to remove, typically its URL
+- `document-id` (string): The ID of the document to remove, typically its URL
 
 **Response**:
 ```lua
 {
   target = sender,
   action = 'Remove-Document-Result',
-  ['Document-Id'] = documentId, -- Document-URL
+  ['document-id'] = documentId, -- document-url
   data = 'OK'
 }
 ```
@@ -112,8 +111,8 @@ Searches the document index for matching content.
 **Required Roles**: None (public)
 
 **Parameters**:
-- `Query` or `query` (string): The search query
-- `Search-Type` (string, optional): Search algorithm to use (`simple` or `bm25`, defaults to `simple`)
+- `query` (string): The search query
+- `search-type` (string, optional): Search algorithm to use (`simple` or `bm25`, defaults to `simple`)
 
 **Response**:
 ```lua
@@ -134,8 +133,77 @@ send({
   target = nestId,
   action = 'Search',
   query = 'web crawling',
-  ['Search-Type'] = 'bm25'
+  ['search-type'] = 'bm25'
 })
+```
+
+### Add-Crawler
+
+Registers an existing crawler with the Nest.
+
+**Action**: `Add-Crawler`
+
+**Required Roles**: `owner`, `admin`, `Add-Crawler`
+
+**Parameters**:
+- `crawler-id` (string): The process ID of the crawler to add
+- `crawler-name` (string, optional): Name for the crawler, defaults to "My Wuzzy Crawler"
+
+**Response**:
+```lua
+{
+  target = sender,
+  action = 'Crawler-Added',
+  data = 'OK',
+  ['crawler-id'] = crawlerId
+}
+```
+
+### Remove-Crawler
+
+Removes a crawler from the Nest.
+
+**Action**: `Remove-Crawler`
+
+**Required Roles**: `owner`, `admin`, `Remove-Crawler`
+
+**Parameters**:
+- `crawler-id` (string): The process ID of the crawler to remove
+
+**Response**:
+```lua
+{
+  target = sender,
+  action = 'Crawler-Removed',
+  data = 'OK',
+  ['crawler-id'] = crawlerId
+}
+```
+
+---
+
+## Wuzzy Crawler Handlers
+
+The Crawler provides handlers for managing crawl tasks and processing web content.
+
+### Request-Crawl
+
+Requests immediate crawling of a specific URL.
+
+**Action**: `Request-Crawl`
+
+**Required Roles**: `owner`, `admin`, `Request-Crawl`
+
+**Parameters**:
+- `url` (string): The URL to crawl immediately
+
+**Response**:
+```lua
+{
+  target = sender,
+  action = 'Request-Crawl-Result',
+  data = result
+}
 ```
 
 ### Add-Crawl-Tasks
@@ -147,7 +215,7 @@ Adds URLs to the crawl task queue.
 **Required Roles**: `owner`, `admin`, `Add-Crawl-Tasks`
 
 **Parameters**:
-- `data` (string): Newline-separated list of URLs to crawl (must use `arns://` or `ar://` protocols)
+- `data` (string): Newline-separated list of URLs to crawl
 
 **Response**:
 ```lua
@@ -187,156 +255,6 @@ Removes URLs from the crawl task queue.
 }
 ```
 
-### Create-Crawler
-
-Spawns a new crawler instance.
-
-**Action**: `Create-Crawler`
-
-**Required Roles**: `owner`, `admin`, `Create-Crawler`
-
-**Parameters**:
-- `Crawler-Name` (string, optional): Name for the crawler (defaults to "My Wuzzy Crawler")
-
-**Response**:
-```lua
-{
-  target = sender,
-  action = 'Create-Crawler-Result',
-  data = 'OK',
-  ['X-Create-Crawler-Id'] = uniqueId
-}
-```
-
-**Follow-up Response** (when crawler is spawned):
-```lua
-{
-  target = sender,
-  action = 'Crawler-Spawned',
-  data = 'OK',
-  ['Crawler-Id'] = crawlerId,
-  ['X-Create-Crawler-Id'] = uniqueId
-}
-```
-
-### Add-Crawler
-
-Registers an existing crawler with the Nest.
-
-**Action**: `Add-Crawler`
-
-**Required Roles**: `owner`, `admin`, `Add-Crawler`
-
-**Parameters**:
-- `Crawler-Id` (string): The process ID of the crawler to add
-- `Crawler-Name` (string, optional): Name for the crawler
-
-**Response**:
-```lua
-{
-  target = sender,
-  action = 'Crawler-Added',
-  data = 'OK',
-  ['Crawler-Id'] = crawlerId
-}
-```
-
-### Remove-Crawler
-
-Removes a crawler from the Nest.
-
-**Action**: `Remove-Crawler`
-
-**Required Roles**: `owner`, `admin`, `Remove-Crawler`
-
-**Parameters**:
-- `Crawler-Id` (string): The process ID of the crawler to remove
-
-**Response**:
-```lua
-{
-  target = sender,
-  action = 'Crawler-Removed',
-  data = 'OK',
-  ['Crawler-Id'] = crawlerId
-}
-```
-
----
-
-## Wuzzy Crawler Handlers
-
-The Crawler provides handlers for managing crawl tasks and processing web content.
-
-### Request-Crawl
-
-Requests immediate crawling of a specific URL.
-
-**Action**: `Request-Crawl`
-
-**Required Roles**: `owner`, `admin`, `Request-Crawl`
-
-**Parameters**:
-- `URL` (string): The URL to crawl immediately
-
-**Response**:
-```lua
-{
-  target = sender,
-  action = 'Request-Crawl-Result',
-  data = result
-}
-```
-
-### Add-Crawl-Tasks
-
-Adds URLs to the crawler's task list.
-
-**Action**: `Add-Crawl-Tasks`
-
-**Required Roles**: `owner`, `admin`, `Add-Crawl-Tasks`
-
-**Parameters**:
-- `data` (string): Newline-separated list of URLs to add to crawl tasks
-
-**Response**:
-```lua
-{
-  target = sender,
-  action = 'Add-Crawl-Tasks-Result',
-  data = 'OK'
-}
-```
-
-**Example**:
-```lua
-send({
-  target = crawlerId,
-  action = 'Add-Crawl-Tasks',
-  data = 'https://example.com\nhttps://another-site.com'
-})
-```
-
-### Remove-Crawl-Tasks
-
-Removes URLs from the crawler's task list.
-
-**Action**: `Remove-Crawl-Tasks`
-
-**Required Roles**: `owner`, `admin`, `Remove-Crawl-Tasks`
-
-**Parameters**:
-- `data` (string): Newline-separated list of URLs to remove
-
-**Response**:
-```lua
-{
-  target = sender,
-  action = 'Remove-Crawl-Tasks-Result',
-  data = 'OK'
-}
-```
-
 ### Set-Nest-Id
 
 Configures which Nest the crawler should submit documents to.
@@ -346,7 +264,7 @@ Configures which Nest the crawler should submit documents to.
 **Required Roles**: `owner`, `admin`, `Set-Nest-Id`
 
 **Parameters**:
-- `Nest-Id` (string): The process ID of the target Nest
+- `nest-id` (string): The process ID of the target Nest
 
 **Response**:
 ```lua
@@ -354,7 +272,7 @@ Configures which Nest the crawler should submit documents to.
   target = sender,
   action = 'Set-Nest-Id-Result',
   data = 'OK',
-  ['Nest-Id'] = nestId
+  ['nest-id'] = nestId
 }
 ```
 
@@ -364,7 +282,7 @@ Triggers the crawler's scheduled processing cycle.
 
 **Action**: `Cron`
 
-**Required Roles**: Must be called by the first authority in the authorities list
+**Required Roles**: `owner`, `admin`, `Cron`
 
 **Parameters**: None
 
@@ -375,54 +293,9 @@ Triggers the crawler's scheduled processing cycle.
 
 **Note**: This is typically called by a scheduler, not manually.
 
-### Relay-Result
-
-Internal handler for processing crawled content.
-
-**Action**: `Relay-Result`
-
-**Required Roles**: Must be called by the crawler process itself
-
-**Parameters**:
-- `relay-path` (string): The original URL that was crawled
-- `content-type` (string): MIME type of the content
-- `body` (string): The content body
-- `block-timestamp` (string): Timestamp of when the content was fetched
-
-**Behavior**:
-- For HTML: Parses content, extracts links, and discovers new URLs to crawl
-- For plain text: Indexes the content directly
-- Submits processed documents to the configured Nest
-
-**Note**: This is an internal handler used by the relay system.
-
----
-
 ## State Management
 
 Both components include built-in state management handlers:
-
-### Get-State
-
-Retrieves the current state of the component.
-
-**Action**: `Get-State`
-
-**Required Roles**: `owner`, `admin`, `Get-State`
-
-**Response**: Returns the complete state object
-
-### Get-Info
-
-Retrieves basic information about the component.
-
-**Action**: `Get-Info`
-
-**Required Roles**: None (public)
-
-**Response**: Returns component info and statistics
-
----
 
 ## ACL (Access Control List) Handlers
 
@@ -470,6 +343,5 @@ All handlers include comprehensive error checking and will respond with assertio
 - Required parameters are missing
 - Invalid data formats are provided
 - Permission checks fail
-- Resource constraints are violated
 
 Errors are returned as standard AO error responses with descriptive messages.

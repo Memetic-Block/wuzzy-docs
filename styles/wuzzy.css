@@ -34,7 +34,7 @@
 }
 
 :root {
-  --rp-c-brand: #f00;
+  --rp-c-brand: rgb(255, 255, 255);
   --rp-font-family-base: "Berkeley Mono", monospace;
   --rp-font-family-mono: "Berkeley Mono", monospace;
 }
