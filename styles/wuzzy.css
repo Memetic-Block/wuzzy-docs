@@ -23,7 +23,6 @@
     url('./fonts/BerkeleyMono-Italic.woff2') format('woff2');
 }
 
-
 @font-face {
   font-family: 'Berkeley Mono';
   font-style: italic;
@@ -34,11 +33,101 @@
 }
 
 :root {
-  --rp-c-brand: rgb(255, 255, 255);
-  --rp-font-family-base: "Berkeley Mono", monospace;
-  --rp-font-family-mono: "Berkeley Mono", monospace;
+  --rp-font-family-base: 'Berkeley Mono', monospace;
+  --rp-font-family-mono: 'Berkeley Mono', monospace;
+  --rp-c-brand: #0a0a0a;
+  --rp-home-hero-name-background: #0a0a0a;
+  --rp-c-text-1: #0a0a0a;
+  --rp-c-brand-light: #05df72;
+  --rp-c-brand-dark: #00c951;
+  --rp-radius: 0.5rem;
+  --rp-radius-small: 0.25rem;
+  --rp-radius-large: 0.4rem;
+  --rp-border-color: #a1a1a1;
+}
+
+.dark {
+  --rp-c-brand: #05df72;
+  --rp-home-hero-name-background: #fafafa;
+  --rp-c-text-1: #fafafa;
+  --rp-c-bg: #0a0a0a;
+  --rp-c-bg-soft: #171717;
+  --rp-c-bg-mute: #171717;
+  --rp-border-color: #262626;
 }
 
 .rspress-nav-search-button div {
   font-size: x-small;
+}
+
+/* Hero mask */
+.mask_bbaa6 {
+  z-index: -1;
+}
+
+/* Buttons */
+.link_a7cea.button_e8e0d {
+  font-size: 14px;
+  height: max-content;
+  min-width: max-content;
+  padding: 0.4rem 0.75rem;
+}
+
+.link_a7cea.button_e8e0d.brand_dc619.big_f7033 {
+  color: #0a0a0a;
+}
+
+.button_e8e0d.brand_dc619 {
+  background: var(--rp-c-brand-light);
+}
+
+.dark .button_e8e0d.alt_b0249 {
+  border-color: var(--rp-border-color);
+}
+
+.dark .button_e8e0d.alt_b0249:hover {
+  background-color: #262626;
+  opacity: 1;
+}
+
+.clip_aacad {
+  line-height: 1 !important;
+}
+
+/* Feature cards */
+.rspress-home-feature-card {
+  border-radius: 0.4rem !important;
+  user-select: none;
+}
+
+/* Menu items */
+.menuItemActive_de63c {
+  background-color: var(--rp-c-bg-soft);
+  user-select: none;
+}
+
+.aside-link.aside-active,
+.aside-link.aside-active:hover {
+  background-color: var(--rp-c-bg-soft);
+  user-select: none;
+}
+
+/* Search button/input */
+.navSearchButton_df1fb:hover {
+  border: 1px solid var(--rp-border-color);
+}
+
+/* Media queries */
+@media (min-width: 400px) {
+  h1 {
+    font-size: 3rem !important;
+  }
+
+  .rspress-home-hero-text {
+    font-size: 3rem !important;
+  }
+
+  .rspress-home-hero-tagline {
+    font-size: 1.2rem !important;
+  }
 }

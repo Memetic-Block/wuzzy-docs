@@ -13,7 +13,7 @@ hero:
       text: GitHub
       link: https://github.com/memetic-block/wuzzy-ao
   image:
-    src: /wuzzy-red.png
+    src: /wuzzy.png
     alt: Logo
 features:
   - title: Autonomous Web Crawlers

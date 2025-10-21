@@ -7,7 +7,7 @@ export default defineConfig({
   icon: '/wuzzy.png',
   logo: {
     light: '/wuzzy.png',
-    dark: '/wuzzy.png',
+    dark: '/wuzzy-dark.png',
   },
   globalStyles: path.join(__dirname, './styles/wuzzy.css'),
   themeConfig: {
