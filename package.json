@@ -19,6 +19,7 @@
     "@ardrive/turbo-sdk": "^1.30.0",
     "@eslint/js": "^9.19.0",
     "@types/node": "^18.11.17",
+    "dotenv": "^17.2.3",
     "eslint": "^9.19.0",
     "globals": "^15.14.0",
     "prettier": "^3.4.2",
