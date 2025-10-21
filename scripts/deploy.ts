@@ -1,16 +1,15 @@
+import 'dotenv/config'
 import { ANT, ArweaveSigner } from '@ar.io/sdk'
 import { TurboFactory } from '@ardrive/turbo-sdk'
 import { readFileSync } from 'fs'
 
-import { logger } from './logger'
-
+const logger = console
 const DEPLOY_FOLDER = `${process.cwd()}/doc_build`
 const gatewayUrl = process.env.GATEWAY || 'https://arweave.net'
-const url = process.env.BUNDLER || 'https://ar.anyone.tech/bundler'
 const processId = process.env.ANT_PROCESS_ID || ''
-// if (!processId) {
-//   throw new Error('No ANT_PROCESS_ID provided!')
-// }
+if (!processId) {
+  throw new Error('No ANT_PROCESS_ID provided!')
+}
 const PRIVATE_KEY = process.env.PRIVATE_KEY || ''
 if (!PRIVATE_KEY) {
   throw new Error('PRIVATE_KEY is not set!')
@@ -18,11 +17,11 @@ if (!PRIVATE_KEY) {
 const JWK = JSON.parse(readFileSync(PRIVATE_KEY, 'utf-8'))
 const signer = new ArweaveSigner(JWK)
 
-let undername = 'dev'
+let undername = 'docs-dev'
 if (process.env.PHASE === 'stage') {
-  undername = 'stage'
+  undername = 'docs-stage'
 } else if (process.env.PHASE === 'live') {
-  undername = '@'
+  undername = 'docs'
 } else if (process.env.UNDERNAME) {
   undername = process.env.UNDERNAME
 }
@@ -34,9 +33,8 @@ async function deploy() {
     gatewayUrl,
     // uploadServiceConfig: { url }
   })
-  // const ant = ANT.init({ processId, signer })
+  
   const {
-    // fileResponses,
     manifestResponse,
     manifest,
     errors
@@ -55,19 +53,33 @@ async function deploy() {
     logger.error(errors)
     throw new Error('Deploy failed, see errors above')
   }
+
+  if (!manifestResponse?.id) {
+    throw new Error('No manifest id returned!')
+  }
+
   logger.info(`Manifest id ${manifestResponse?.id}`)
   logger.info('Manifest', JSON.stringify(manifest))
-  // logger.info('Updating ANT undername', undername)
-  // const { id: deployedTxId } = undername === '@'
-  //   ? await ant.setBaseNameRecord({
-  //     transactionId: manifestResponse?.id,
-  //     ttlSeconds: 3600
-  //   })
-  //   : await ant.setUndernameRecord({
-  //     undername,
-  //     transactionId: manifestResponse?.id,
-  //     ttlSeconds: 3600
-  //   })
+
+  logger.info('Updating ANT undername', undername)
+  const ant = ANT.init({ processId, signer })
+  const record = {
+    transactionId: manifestResponse?.id,
+    ttlSeconds: undername === 'docs' ? 1800 : 60,
+    displayName: 'Wuzzy Docs',
+    description: 'Wuzzy Docs is the documentation website for Wuzzy Search, a decentralized search engine application built on the Arweave and AO',
+    keywords: [ 'wuzzy', 'search', 'ao', 'permaweb', 'seo', 'discover', 'docs', 'documentation', 'api' ]
+  }
+  const { id: deployedTxId } = undername === 'docs'
+    ? await ant.setBaseNameRecord(record)
+    : await ant.setUndernameRecord({
+      undername,
+      ...record
+    })
+  logger.info(
+    `ANT updated! View deploy message at `
+      +`https://ao.link/#/message/${deployedTxId}`
+  )
 }
 
 deploy()
