@@ -70,9 +70,7 @@ async function deploy() {
     description: 'Wuzzy Docs is the documentation website for Wuzzy Search, a decentralized search engine application built on the Arweave and AO',
     keywords: [ 'wuzzy', 'search', 'ao', 'permaweb', 'seo', 'discover', 'docs', 'documentation', 'api' ]
   }
-  const { id: deployedTxId } = undername === 'docs'
-    ? await ant.setBaseNameRecord(record)
-    : await ant.setUndernameRecord({
+  const { id: deployedTxId } = await ant.setUndernameRecord({
       undername,
       ...record
     })
