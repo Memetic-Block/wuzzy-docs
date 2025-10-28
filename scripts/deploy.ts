@@ -62,7 +62,7 @@ async function deploy() {
   const ant = ANT.init({ processId, signer });
   const record = {
     transactionId: manifestResponse?.id,
-    ttlSeconds: undername === 'docs' ? 1800 : 60,
+    ttlSeconds: 3600,
     displayName: metaTags.title,
     description: metaTags.description,
     keywords: metaTags.keywords,
