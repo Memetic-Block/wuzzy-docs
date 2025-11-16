@@ -2,6 +2,7 @@ import 'dotenv/config'
 import { ANT, ArweaveSigner } from '@ar.io/sdk'
 import { TurboFactory } from '@ardrive/turbo-sdk'
 import { readFileSync } from 'fs'
+import { siteTitle, siteDescription, siteKeywords } from '../head'
 
 const logger = console
 const DEPLOY_FOLDER = `${process.cwd()}/doc_build`
@@ -62,20 +63,9 @@ async function deploy() {
   const record = {
     transactionId: manifestResponse?.id,
     ttlSeconds: 3600,
-    displayName: 'Wuzzy Docs',
-    description:
-      'Wuzzy Docs is the documentation website for Wuzzy Search, a decentralized search engine application built on the Arweave and AO',
-    keywords: [
-      'wuzzy',
-      'search',
-      'ao',
-      'permaweb',
-      'seo',
-      'discover',
-      'docs',
-      'documentation',
-      'api'
-    ]
+    displayName: siteTitle,
+    description: siteDescription,
+    keywords: siteKeywords
   }
   const { id: deployedTxId } = await ant.setUndernameRecord({
     undername,
