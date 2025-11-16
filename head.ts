@@ -13,4 +13,4 @@ export const metaTags = {
     'documentation',
     'api',
   ],
-};
+}

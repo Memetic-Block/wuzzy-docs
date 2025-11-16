@@ -12,6 +12,7 @@ Get started with Wuzzy, a decentralized web crawling and search system built on 
 ## Step 1: Setting Up Your Environment
 
 First, clone the Wuzzy AO repository and install it:
+
 ```bash
 git clone https://github.com/memetic-block/wuzzy-ao
 cd wuzzy-ao
@@ -19,9 +20,11 @@ npm install
 ```
 
 Next, we'll bundle the source code to prepare them for deployment:
+
 ```bash
 npm run bundle
 ```
+
 The `bundle` command creates a directory `dist` which contains the bundled lua code ready for deployment.
 
 Then, start an AOS session in your terminal, filling in your hyperbeam node url of choice & giving the process a name:
@@ -60,11 +63,13 @@ Once aos has loaded and you see the prompt you can load the **Wuzzy Crawler** lu
 ```
 
 After the lua code has loaded, we'll need to set the crawler's `NestId` so that it knows where to submit documents it crawls.
+
 ```bash
 send({ target = id, action = 'Set-Nest-Id', ['nest-id'] = '<wuzzy nest id from earlier>' })
 ```
 
 Back in the **Wuzzy Nest** process, we'll have to grant permission for the new crawler to submit documents:
+
 ```bash
 send({ target = id, action = 'Add-Crawler', ['crawler-id'] = '<wuzzy crawler id we just spawned>' })
 ```
@@ -73,7 +78,7 @@ You can repeat this step to spawn multiple crawlers.
 
 ## Step 4: Configure Crawl Tasks
 
-Add URLs for your Crawler to process.  URLs can be http, https, arns, or ar protocol schemes:
+Add URLs for your Crawler to process. URLs can be http, https, arns, or ar protocol schemes:
 
 ```lua
 send({ target = id, action = 'Add-Crawl-Tasks', data = 'https://cookbook_ao.arweave.net' })
@@ -82,6 +87,7 @@ send({ target = id, action = 'Add-Crawl-Tasks', data = 'https://cookbook_ao.arwe
 Multiple tasks can be added by separating them with a newline.
 
 **Supported URL formats:**
+
 - `http://domain.com` - HTTP
 - `https://secure-domain.com` - HTTPS
 - `arns://domain.ar.io` - Arweave Name System domains
@@ -92,6 +98,7 @@ Multiple tasks can be added by separating them with a newline.
 As `Cron` is not currently available to `hyper-aos`, we can send these messages ourselves, or from an automated script.
 
 For example, from inside the crawler process, you can trigger `Cron` manually:
+
 ```bash
 send({ target = id, action = 'Cron' })
 ```
@@ -116,6 +123,7 @@ Once your Wuzzy Nest has some indexed content, you can search it by using Hyperb
 View module id: `NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc`
 
 To issue a BM25 search for query "hyperbeam":
+
 ```bash
 curl "https://some.hyperbeam.node/<YOUR WUZZY NEST ID>/now/~lua@5.3a&module=NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc/search_bm25/serialize~json@1.0?query=hyperbeam
 ```
@@ -222,7 +230,7 @@ export interface WuzzyCrawlerInfo {
 
 ### Access Control
 
-Both the Wuzzy Nest and Wuzzy Crawler contain ACL functionality.  By default, the owner has access to all actions.  You can authorize another user or process to perform an action by sending an `Update-Roles` message to the Nest or Crawler:
+Both the Wuzzy Nest and Wuzzy Crawler contain ACL functionality. By default, the owner has access to all actions. You can authorize another user or process to perform an action by sending an `Update-Roles` message to the Nest or Crawler:
 
 ```lua
 -- Grant "Add-Crawl-Tasks" permission to a user or process id

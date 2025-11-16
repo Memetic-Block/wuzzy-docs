@@ -1,8 +1,8 @@
-import 'dotenv/config';
-import { ANT, ArweaveSigner } from '@ar.io/sdk';
-import { TurboFactory } from '@ardrive/turbo-sdk';
-import { readFileSync } from 'fs';
-import { metaTags } from '../head';
+import 'dotenv/config'
+import { ANT, ArweaveSigner } from '@ar.io/sdk'
+import { TurboFactory } from '@ardrive/turbo-sdk'
+import { readFileSync } from 'fs'
+import { metaTags } from '../head'
 
 const logger = console;
 const DEPLOY_FOLDER = `${process.cwd()}/doc_build`;
@@ -31,9 +31,9 @@ async function deploy() {
   logger.info('Deploying...');
   const turbo = TurboFactory.authenticated({
     signer,
-    gatewayUrl,
+    gatewayUrl
     // uploadServiceConfig: { url }
-  });
+  })
 
   const { manifestResponse, manifest, errors } = await turbo.uploadFolder({
     folderPath: DEPLOY_FOLDER,
@@ -65,21 +65,21 @@ async function deploy() {
     ttlSeconds: 3600,
     displayName: metaTags.title,
     description: metaTags.description,
-    keywords: metaTags.keywords,
-  };
+    keywords: metaTags.keywords
+  }
   const { id: deployedTxId } = await ant.setUndernameRecord({
     undername,
-    ...record,
-  });
+    ...record
+  })
   logger.info(
     `ANT updated! View deploy message at ` +
-      `https://ao.link/#/message/${deployedTxId}`,
-  );
+      `https://ao.link/#/message/${deployedTxId}`
+  )
 }
 
 deploy()
   .then(() => logger.info('Deployed!'))
   .catch((err) => {
-    logger.error('error deploying!', err);
-    process.exit(1);
-  });
+    logger.error('error deploying!', err)
+    process.exit(1)
+  })

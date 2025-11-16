@@ -8,6 +8,7 @@
     "deploy:static": "npx wrangler pages deploy /usr/src/app/doc_build --project-name=$PROJECT_NAME",
     "dev": "rspress dev",
     "format": "prettier --write .",
+    "generate:seo": "npx tsx scripts/generate-seo-files.ts",
     "lint": "eslint .",
     "preview": "rspress preview"
   },
@@ -21,6 +22,7 @@
     "@types/node": "^18.11.17",
     "dotenv": "^17.2.3",
     "eslint": "^9.19.0",
+    "glob": "^11.0.3",
     "globals": "^15.14.0",
     "prettier": "^3.4.2",
     "tsx": "^4.20.6",
