@@ -2,7 +2,7 @@ import 'dotenv/config'
 import { ANT, ArweaveSigner } from '@ar.io/sdk'
 import { TurboFactory } from '@ardrive/turbo-sdk'
 import { readFileSync } from 'fs'
-import { siteTitle, siteDescription, siteKeywords } from '../head'
+import { metaTags } from '../head'
 
 const logger = console
 const DEPLOY_FOLDER = `${process.cwd()}/doc_build`
@@ -63,9 +63,9 @@ async function deploy() {
   const record = {
     transactionId: manifestResponse?.id,
     ttlSeconds: 3600,
-    displayName: siteTitle,
-    description: siteDescription,
-    keywords: siteKeywords
+    displayName: metaTags.title,
+    description: metaTags.description,
+    keywords: metaTags.keywords
   }
   const { id: deployedTxId } = await ant.setUndernameRecord({
     undername,

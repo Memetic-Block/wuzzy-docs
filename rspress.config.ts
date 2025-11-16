@@ -1,11 +1,11 @@
 import * as path from 'node:path'
 import { defineConfig } from 'rspress/config'
-import { siteTitle, siteDescription, siteKeywords } from './head'
+import { metaTags } from './head'
 
 export default defineConfig({
   root: path.join(__dirname, 'docs'),
-  title: 'Wuzzy Docs',
-  description: siteDescription,
+  title: metaTags.title,
+  description: metaTags.description,
   icon: '/wuzzy.png',
   logo: {
     light: '/wuzzy.png',
@@ -13,13 +13,13 @@ export default defineConfig({
   },
   globalStyles: path.join(__dirname, './styles/wuzzy.css'),
   head: [
-    ['meta', { name: 'keywords', content: siteKeywords.join(', ') }],
-    ['meta', { property: 'og:title', content: siteTitle }],
-    ['meta', { property: 'og:description', content: siteDescription }],
+    ['meta', { name: 'keywords', content: metaTags.keywords.join(', ') }],
+    ['meta', { property: 'og:title', content: metaTags.title }],
+    ['meta', { property: 'og:description', content: metaTags.description }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { name: 'twitter:card', content: 'summary' }],
-    ['meta', { name: 'twitter:title', content: siteTitle }],
-    ['meta', { name: 'twitter:description', content: siteDescription }],
+    ['meta', { name: 'twitter:title', content: metaTags.title }],
+    ['meta', { name: 'twitter:description', content: metaTags.description }],
     // Block search engine indexing for dev and stage environments
     () => {
       const phase = process.env.PHASE || 'dev'
