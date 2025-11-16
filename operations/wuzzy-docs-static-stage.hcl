@@ -31,6 +31,7 @@ job "wuzzy-docs-static-stage" {
 
       env {
         PHASE="stage"
+        HOSTNAME="docs-stage.wuzzy.io"
         PROJECT_NAME="wuzzy-docs-stage"
         PRIVATE_KEY="/usr/src/app/wallet.json"
         ANT_PROCESS_ID="-Kkir7ML3cb2XCyeD8lUbl1g8tfivrB_0xkzPeChVjM"
@@ -81,6 +82,9 @@ job "wuzzy-docs-static-stage" {
 
         echo "Generating static files"
         npm run build
+
+        echo "Generating SEO files (sitemap.xml and robots.txt)"
+        npm run generate:seo
 
         echo "Deploying static site to Cloudflare Pages"
         npm run deploy:static

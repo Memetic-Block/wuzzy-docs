@@ -30,15 +30,11 @@ async function deploy() {
   logger.info('Deploying...')
   const turbo = TurboFactory.authenticated({
     signer,
-    gatewayUrl,
+    gatewayUrl
     // uploadServiceConfig: { url }
   })
-  
-  const {
-    manifestResponse,
-    manifest,
-    errors
-  } = await turbo.uploadFolder({
+
+  const { manifestResponse, manifest, errors } = await turbo.uploadFolder({
     folderPath: DEPLOY_FOLDER,
     dataItemOpts: {
       tags: [{ name: 'Deploy-Nonce', value: Date.now().toString() }]
@@ -67,19 +63,33 @@ async function deploy() {
     transactionId: manifestResponse?.id,
     ttlSeconds: 3600,
     displayName: 'Wuzzy Docs',
-    description: 'Wuzzy Docs is the documentation website for Wuzzy Search, a decentralized search engine application built on the Arweave and AO',
-    keywords: [ 'wuzzy', 'search', 'ao', 'permaweb', 'seo', 'discover', 'docs', 'documentation', 'api' ]
+    description:
+      'Wuzzy Docs is the documentation website for Wuzzy Search, a decentralized search engine application built on the Arweave and AO',
+    keywords: [
+      'wuzzy',
+      'search',
+      'ao',
+      'permaweb',
+      'seo',
+      'discover',
+      'docs',
+      'documentation',
+      'api'
+    ]
   }
   const { id: deployedTxId } = await ant.setUndernameRecord({
-      undername,
-      ...record
-    })
+    undername,
+    ...record
+  })
   logger.info(
-    `ANT updated! View deploy message at `
-      +`https://ao.link/#/message/${deployedTxId}`
+    `ANT updated! View deploy message at ` +
+      `https://ao.link/#/message/${deployedTxId}`
   )
 }
 
 deploy()
   .then(() => logger.info('Deployed!'))
-  .catch(err => { logger.error('error deploying!', err); process.exit(1); })
+  .catch((err) => {
+    logger.error('error deploying!', err)
+    process.exit(1)
+  })

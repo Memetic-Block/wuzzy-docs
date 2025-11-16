@@ -8,6 +8,7 @@ Wuzzy is a decentralized web crawling and search system built on the AO (Actor O
 ## Overview
 
 The Wuzzy system uses a distributed architecture where:
+
 - A **Nest** acts as the central search index
 - Multiple **Crawlers** can be spawned to crawl different domains
 - Crawlers submit indexed content to the Nest
@@ -16,13 +17,17 @@ The Wuzzy system uses a distributed architecture where:
 ## Components
 
 ### Wuzzy Nest
+
 The Nest is the central hub that:
+
 - Maintains the document index
 - Provides search functionality (simple and BM25)
 - Manages crawler instances
 
 ### Wuzzy Crawler
+
 Crawlers are autonomous processes that:
+
 - Accept crawl tasks for specific domains
 - Fetch and parse web content
 - Extract links and follow them within allowed domains
@@ -31,6 +36,7 @@ Crawlers are autonomous processes that:
 ## Authentication & Authorization
 
 Both components use an Access Control List (ACL) system with roles:
+
 - `owner`: Full administrative access
 - `admin`: Administrative access
 - Component-specific roles for granular permissions
@@ -50,6 +56,7 @@ Indexes a document in the search database.
 **Required Roles**: `owner`, `admin`, `Index-Document`
 
 **Parameters**:
+
 - `document-url` (string): The URL of the document to index, used as `document-id`
 - `document-last-crawled-at` (string): The `date` header from the relay device response
 - `document-content-type` (string): MIME type of the document
@@ -58,6 +65,7 @@ Indexes a document in the search database.
 - `document-description` (string, optional): Description/summary of the document
 
 **Response**:
+
 ```lua
 {
   target = sender,
@@ -68,6 +76,7 @@ Indexes a document in the search database.
 ```
 
 **Example**:
+
 ```lua
 send({
   target = nestId,
@@ -90,9 +99,11 @@ Removes a document from the search index.
 **Required Roles**: `owner`, `admin`, `Remove-Document`
 
 **Parameters**:
+
 - `document-id` (string): The ID of the document to remove, typically its URL
 
 **Response**:
+
 ```lua
 {
   target = sender,
@@ -111,10 +122,12 @@ Searches the document index for matching content.
 **Required Roles**: None (public)
 
 **Parameters**:
+
 - `query` (string): The search query
 - `search-type` (string, optional): Search algorithm to use (`simple` or `bm25`, defaults to `simple`)
 
 **Response**:
+
 ```lua
 {
   target = sender,
@@ -128,6 +141,7 @@ Searches the document index for matching content.
 ```
 
 **Example**:
+
 ```lua
 send({
   target = nestId,
@@ -146,10 +160,12 @@ Registers an existing crawler with the Nest.
 **Required Roles**: `owner`, `admin`, `Add-Crawler`
 
 **Parameters**:
+
 - `crawler-id` (string): The process ID of the crawler to add
 - `crawler-name` (string, optional): Name for the crawler, defaults to "My Wuzzy Crawler"
 
 **Response**:
+
 ```lua
 {
   target = sender,
@@ -168,9 +184,11 @@ Removes a crawler from the Nest.
 **Required Roles**: `owner`, `admin`, `Remove-Crawler`
 
 **Parameters**:
+
 - `crawler-id` (string): The process ID of the crawler to remove
 
 **Response**:
+
 ```lua
 {
   target = sender,
@@ -195,9 +213,11 @@ Requests immediate crawling of a specific URL.
 **Required Roles**: `owner`, `admin`, `Request-Crawl`
 
 **Parameters**:
+
 - `url` (string): The URL to crawl immediately
 
 **Response**:
+
 ```lua
 {
   target = sender,
@@ -215,9 +235,11 @@ Adds URLs to the crawl task queue.
 **Required Roles**: `owner`, `admin`, `Add-Crawl-Tasks`
 
 **Parameters**:
+
 - `data` (string): Newline-separated list of URLs to crawl
 
 **Response**:
+
 ```lua
 {
   target = sender,
@@ -227,6 +249,7 @@ Adds URLs to the crawl task queue.
 ```
 
 **Example**:
+
 ```lua
 send({
   target = nestId,
@@ -244,9 +267,11 @@ Removes URLs from the crawl task queue.
 **Required Roles**: `owner`, `admin`, `Remove-Crawl-Tasks`
 
 **Parameters**:
+
 - `data` (string): Newline-separated list of URLs to remove
 
 **Response**:
+
 ```lua
 {
   target = sender,
@@ -264,9 +289,11 @@ Configures which Nest the crawler should submit documents to.
 **Required Roles**: `owner`, `admin`, `Set-Nest-Id`
 
 **Parameters**:
+
 - `nest-id` (string): The process ID of the target Nest
 
 **Response**:
+
 ```lua
 {
   target = sender,
@@ -287,6 +314,7 @@ Triggers the crawler's scheduled processing cycle.
 **Parameters**: None
 
 **Behavior**:
+
 - Processes crawl tasks if the queue is empty
 - Crawls the next URL in the queue if available
 - Updates the state cache
@@ -310,6 +338,7 @@ Updates user roles and permissions.
 **Required Roles**: `owner`, `admin`
 
 **Parameters**:
+
 - Role update object with `Grant` and/or `Revoke` operations
 
 ### Get-Roles
@@ -325,11 +354,13 @@ Retrieves current role assignments.
 ## Supported Protocols
 
 ### Crawler Protocols
+
 - `http://` and `https://` - Standard web protocols
 - `arns://` - Arweave Name System URLs
 - `ar://` - Direct Arweave transaction URLs
 
-### Nest Protocols  
+### Nest Protocols
+
 - `arns://` - Arweave Name System URLs
 - `ar://` - Direct Arweave transaction URLs
 
@@ -340,6 +371,7 @@ Retrieves current role assignments.
 ## Error Handling
 
 All handlers include comprehensive error checking and will respond with assertion errors if:
+
 - Required parameters are missing
 - Invalid data formats are provided
 - Permission checks fail
