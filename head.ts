@@ -1,14 +1,16 @@
 export const metaTags = {
   title: 'Wuzzy Docs',
   description:
-    'Wuzzy Docs is the documentation website for Wuzzy Search, a decentralized search engine application built on the Arweave and AO',
+    'Documentation for Wuzzy, a search index for AI agents where every result carries onchain proof of what was crawled and when.',
   keywords: [
     'wuzzy',
     'search',
-    'ao',
-    'permaweb',
-    'seo',
-    'discover',
+    'ai agents',
+    'x402',
+    'eas',
+    'attestations',
+    'provenance',
+    'base',
     'docs',
     'documentation',
     'api',

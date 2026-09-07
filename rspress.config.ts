@@ -45,7 +45,7 @@ export default defineConfig({
       {
         icon: 'github',
         mode: 'link',
-        content: 'https://github.com/memetic-block/wuzzy-ao'
+        content: 'https://github.com/Memetic-Block/wuzzy'
       }
     ]
   }
