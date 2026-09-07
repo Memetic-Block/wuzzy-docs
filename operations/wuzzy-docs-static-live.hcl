@@ -26,15 +26,12 @@ job "wuzzy-docs-static-live" {
           target = "/workdir/entrypoint.sh"
           readonly = true
         }
-        volumes = [ "secrets/wallet.json:/usr/src/app/wallet.json" ]
       }
 
       env {
         PHASE="live"
         HOSTNAME="docs.wuzzy.io"
         PROJECT_NAME="wuzzy-docs-live"
-        PRIVATE_KEY="/usr/src/app/wallet.json"
-        ANT_PROCESS_ID="-Kkir7ML3cb2XCyeD8lUbl1g8tfivrB_0xkzPeChVjM"
         VERSION="[[ .commit_sha ]]"
       }
 
@@ -50,8 +47,7 @@ job "wuzzy-docs-static-live" {
 
       vault {
         policies = [
-          "memeticblock-io-cloudflare-deployer",
-          "wuzzy-deployer"
+          "memeticblock-io-cloudflare-deployer"
         ]
       }
 
@@ -68,15 +64,6 @@ job "wuzzy-docs-static-live" {
 
       template {
         data = <<-EOF
-        {{- with secret `kv/wuzzy/deployer` }}
-        {{- base64Decode .Data.data.WUZZY_DEPLOYER_KEY_BASE64 }}
-        {{- end }}
-        EOF
-        destination = "secrets/wallet.json"
-      }
-
-      template {
-        data = <<-EOF
         #!/bin/sh
         set -e
 
@@ -86,11 +73,10 @@ job "wuzzy-docs-static-live" {
         echo "Generating SEO files (sitemap.xml and robots.txt)"
         npm run generate:seo
 
+        # Cloudflare Pages only. Arweave publishing was removed along with its
+        # SDKs and deployer wallet; it can come back as its own step.
         echo "Deploying static site to Cloudflare Pages"
         npm run deploy:static
-
-        echo "Deploying static site to Arweave"
-        npm run deploy:arweave
 
         echo "Static site deployment complete"
         EOF

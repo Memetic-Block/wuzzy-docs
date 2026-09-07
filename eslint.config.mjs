@@ -6,5 +6,7 @@ export default [
   { languageOptions: { globals: globals.browser } },
   js.configs.recommended,
   ...ts.configs.recommended,
-  { ignores: ['dist/'] }
+  // rspress builds to doc_build/, not dist/. Naming the wrong directory here
+  // meant every generated bundle was linted: 1147 errors from emitted code.
+  { ignores: ['doc_build/', 'dist/'] }
 ]
