@@ -47,6 +47,7 @@ status code carrying the meaning.
         "protocol": "wuzzy/crawl-experimental",
         "protocolVersion": 1,
         "contentHash": "92628793bca6441354ccf481673e5d4b597ee52fa849e66356044a3df96cf126",
+        "rawHash": "5f2b0c8e4a1d93c7e6f80b2a4dd51ce9038a7b6f2c4e19d5a83b0f7c6e2d4a19",
         "fetchedAt": "2026-09-06T04:28:39.359Z",
         "attestationUid": null,
         "attestationUrl": null
@@ -64,10 +65,19 @@ status code carrying the meaning.
 | `score` | Reciprocal Rank Fusion. Small, and comparable only within one response |
 | `ranks` | Where each arm placed the result. A tuning aid, not a contract |
 | `provenance.attestationUid` | `null` until the document has been attested |
+| `provenance.contentHash` | sha256 of the canonicalized text. Reproduce it with the v1 procedure |
+| `provenance.rawHash` | sha256 of the bytes the origin served, before canonicalization. What you compare against your own fetch while a result is still unattested |
+| `mode` | Which retrieval actually ran for this response: `hybrid`, `vector` or `lexical` |
 
-Retrieval is hybrid: BM25 and vector similarity run independently and are fused **by rank**
-rather than by score, because BM25 is an unbounded sum and cosine is bounded, and normalizing
-between them would change meaning as the corpus grows.
+Retrieval is hybrid where a deployment has an embedding provider: BM25 and vector similarity
+run independently and are fused **by rank** rather than by score, because BM25 is an unbounded
+sum and cosine is bounded, and normalizing between them would change meaning as the corpus
+grows.
+
+**Check `mode` on the response rather than trusting this page.** A deployment configured
+without an embedding provider serves `lexical` only, and the difference shows up as ranking
+quality rather than as an error: coverage stays good, ordering gets literal. Every response
+says which retrieval actually ran.
 
 The retrieval window is fixed per query and does not grow with `offset`, so pages cannot
 reorder under a reader between requests.
@@ -104,13 +114,24 @@ The same fields plus live crawl progress. `404` if nothing resolves.
   "pages": 250,
   "attestations": 250,
   "pending": 0,
+  "failed": 2,
+  "failures": [
+    { "url": "https://example.com/mcp", "error": "not indexed: fetch failed, disallowed or too thin" }
+  ],
   "statusUrl": "/indexes/e3b69e4e-..."
 }
 ```
 
 `status` is derived from the crawl queue rather than stored, so it cannot disagree with the
 work outstanding. `pages` counts membership rows, `attestations` how many carry a UID, and
-`pending` how many paid-for URLs the store does not hold yet.
+`pending` how many paid-for URLs the store does not hold yet. Queue rows are retired as each
+page lands, so `pending` falls during a crawl rather than dropping all at once at the end.
+
+`failed` counts URLs that were paid for, fetched, and produced nothing indexable: a 4xx, a
+robots refusal, or a page too thin to extract. `failures` names them with the reason, capped at
+50, because an index that is short of what was bought should say which pages and why rather
+than leaving you to diff a sitemap against your results. A failed URL is not refunded and not
+retried automatically; commissioning it again is the retry.
 
 ## POST /indexes
 
@@ -161,6 +182,8 @@ asking; nothing is settled.
 ## Notes for implementers
 
 - **Settlement happens after the response body exists**, so a failed query is never charged for.
+- **Zero results is not a failure.** A search that finds nothing ran, and settles. Only an
+  errored request goes uncharged: a blank query, a rejected payment, a forbidden index.
 - **Access control runs before settlement**, so a `403` costs nothing.
 - Payment is an EIP-3009 authorization, **gasless for the payer**: you need USDC, not ETH.
 - `maxAmountRequired` is in USDC atomic units, six decimals.

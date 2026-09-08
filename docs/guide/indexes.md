@@ -35,9 +35,14 @@ verifies the payment and before settlement, so a rejected caller is never charge
 
 ## Why an explicit URL list
 
-Creation takes the pages, not a host to expand. The price is quoted in the `402` and signed for
-on the retry, so it has to be a pure function of the request body. A host that expanded to an
-unknown number of pages could not be priced before the crawl.
+**There is no "index this host".** Creation takes the list of pages, and getting that list is
+your job: fetch the site's `sitemap.xml`, filter it to what you want, and send those URLs. A
+seed URL on its own indexes exactly one page.
+
+That is a pricing constraint rather than a missing feature. The price is quoted in the `402`
+and signed for on the retry, so it has to be a pure function of the request body. A host that
+expanded to an unknown number of pages could not be priced before the crawl, and the commission
+would be a blank cheque.
 
 There is a limit on how many URLs one request may carry, because the body is parsed before the
 payment is checked. It is a transport bound, not a ceiling on how large an index may become:

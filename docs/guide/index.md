@@ -52,16 +52,46 @@ an autonomous agent at:
   for.
 - **Access control runs before settlement.** A caller who is not permitted to read an index
   gets their `403` without being charged to find out.
+- **A query that finds nothing is still a query, and is charged for.** "Failed" means the
+  request errored: a blank query, a rejected payment, a wallet that may not read the index.
+  Zero results is a successful search of a corpus that does not contain the answer, and it
+  costs the same as one that does. Probe accordingly.
 
 ## Let a client do it
 
 Any x402 client handles the handshake for you. The signing is an EIP-3009 authorization, which
 is gasless for the payer: you need USDC, not ETH.
 
+The reference client is the demo agent in the Wuzzy repository. It is deliberately small and
+imports nothing from the server, so it is readable as an example of what an outsider can build
+against the public API alone:
+
 ```bash
-npx awal x402 pay https://api.wuzzy.io/search \
-  --method POST \
-  --body '{"query":"how do I deploy a contract on Base"}'
+git clone https://github.com/Memetic-Block/wuzzy && cd wuzzy && bun install
+
+bun run demo wallet                       # creates a wallet outside the repo
+bun run demo search "how do I deploy a contract on Base"
+```
+
+Under the hood it is `x402-fetch`, which is the shortest path if you are writing your own.
+Note `createSigner` rather than a hand-built viem wallet client: it is what the library's types
+expect, and it keeps chain selection in one place.
+
+```ts
+import { createSigner, wrapFetchWithPayment } from 'x402-fetch';
+
+const signer = await createSigner('base', process.env.WALLET_PRIVATE_KEY as `0x${string}`);
+
+// The third argument is a ceiling, in atomic USDC units, on what one request
+// may spend without asking again. There is no default worth trusting: quote
+// first, then set it deliberately.
+const paid = wrapFetchWithPayment(fetch, signer, 5_000_000n);
+
+const response = await paid('https://api.wuzzy.io/search', {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ query: 'how do I deploy a contract on Base' }),
+});
 ```
 
 ## Reading a result
