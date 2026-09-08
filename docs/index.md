@@ -3,8 +3,8 @@ pageType: home
 
 hero:
   name: Wuzzy
-  text: Provable search for AI agents
-  tagline: Every result carries onchain proof of what was crawled and when.
+  text: Provable, decentralized search
+  tagline: 'Every result carries an onchain receipt: what was crawled, when, and proof nobody has rearranged it since.'
   actions:
     - theme: brand
       text: Quickstart

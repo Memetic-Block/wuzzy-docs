@@ -1,3 +1,16 @@
+/* Wuzzy docs theme.
+ *
+ * The palette is the one approved for wuzzy.io, taken from the design export
+ * in the main repo (docs/design/Wuzzy_Homepage.dc.html) so the docs and the
+ * site read as one product rather than two that share a logo. It is a warm
+ * paper ground, warm-shifted greys, and a single green accent.
+ *
+ * Two things here are derived rather than lifted, and both say so where they
+ * are defined: the accent's hover and pressed shades, which a docs theme needs
+ * and a one-page design never specified, and the dark mode, which is built
+ * from the one dark surface the design does define.
+ */
+
 @font-face {
   font-family: 'Berkeley Mono';
   font-style: normal;
@@ -33,27 +46,110 @@
 }
 
 :root {
-  --rp-font-family-base: 'Berkeley Mono', monospace;
-  --rp-font-family-mono: 'Berkeley Mono', monospace;
-  --rp-c-brand: #0a0a0a;
-  --rp-home-hero-name-background: #0a0a0a;
-  --rp-c-text-1: #0a0a0a;
-  --rp-c-brand-light: #05df72;
-  --rp-c-brand-dark: #00c951;
-  --rp-radius: 0.5rem;
-  --rp-radius-small: 0.25rem;
-  --rp-radius-large: 0.4rem;
-  --rp-border-color: #a1a1a1;
+  --rp-font-family-base: 'Berkeley Mono', ui-monospace, monospace;
+  --rp-font-family-mono: 'Berkeley Mono', ui-monospace, monospace;
+
+  /* Grounds. The page is paper; anything set apart from it sits above it and
+     is therefore lighter, not darker. */
+  --rp-c-bg: #f1efe7;
+  --rp-c-bg-alt: #fcfbf6;
+  --rp-c-bg-soft: #fcfbf6;
+  --rp-c-bg-mute: #f6f4ed;
+  --rp-home-bg: #f1efe7;
+  --rp-home-feature-bg: #fcfbf6;
+
+  /* Ink, darkest first. Running prose is deliberately lighter than headings so
+     a heading reads as one without needing extra weight. */
+  --rp-c-text-1: #171a14;
+  --rp-c-text-2: #3c4137;
+  --rp-c-text-3: #6a6e60;
+  --rp-c-text-4: #9a9c90;
+
+  /* The one accent. `brand` is the design's; the shades either side of it are
+     stepped from it in lightness, because hover and pressed states are a docs
+     theme's problem and the single-page design never had to name them. The
+     tint is the design's own selection colour, not a computed one. */
+  --rp-c-brand: #0c6e3f;
+  --rp-c-brand-lighter: #17a061;
+  --rp-c-brand-light: #0f8449;
+  --rp-c-brand-dark: #0a5a34;
+  --rp-c-brand-darker: #084527;
+  --rp-c-brand-tint: #c9e4d4;
+  --rp-c-link: #0c6e3f;
+
+  /* Rules. Two weights: dividers, and the heavier line around a container. */
+  --rp-border-color: #d6d3c6;
+  --rp-c-border: #d6d3c6;
+  --rp-c-divider: #d6d3c6;
+  --rp-c-divider-light: #e6e3d8;
+
+  /* Inline code, as on the site: a flat warm fill, no border, no rounding. */
+  --rp-c-text-code: #171a14;
+  --rp-c-text-code-bg: #e6e3d8;
+
+  /* Code blocks keep the site's transcript treatment: the only dark surface in
+     the design, and the one place a reader expects a terminal. */
+  --rp-code-block-bg: #12140f;
+  --rp-code-block-color: #dce3d6;
+  --rp-code-title-bg: #171a14;
+  --rp-code-line-number-color: #8b8f80;
+  --rp-code-line-highlight-color: #2c2f26;
+  --rp-code-copy-code-hover-bg: #2c2f26;
+  --rp-code-wrap-code-hover-bg: #2c2f26;
+
+  /* Nothing in the design has a rounded corner. */
+  --rp-radius: 0;
+  --rp-radius-small: 0;
+  --rp-radius-large: 0;
+
+  --rp-home-hero-name-background: #171a14;
+  --rp-home-hero-name-color: #171a14;
 }
 
+/* Dark mode is not in the design, which is a light page. It is built from the
+   one dark surface the design does specify, the session transcript: its
+   background, its rule, its body text and its label greys, with the accent
+   swapped for the brighter green the design already uses on that surface. */
 .dark {
-  --rp-c-brand: #05df72;
-  --rp-home-hero-name-background: #fafafa;
-  --rp-c-text-1: #fafafa;
-  --rp-c-bg: #0a0a0a;
-  --rp-c-bg-soft: #171717;
-  --rp-c-bg-mute: #171717;
-  --rp-border-color: #262626;
+  --rp-c-bg: #12140f;
+  --rp-c-bg-alt: #171a14;
+  --rp-c-bg-soft: #171a14;
+  --rp-c-bg-mute: #1c1f18;
+  --rp-home-bg: #12140f;
+  --rp-home-feature-bg: #171a14;
+
+  --rp-c-text-1: #dce3d6;
+  --rp-c-text-2: #b9bcaf;
+  --rp-c-text-3: #8b8f80;
+  --rp-c-text-4: #6a6e60;
+
+  --rp-c-brand: #8fc7a6;
+  --rp-c-brand-lighter: #b4dcc4;
+  --rp-c-brand-light: #a1d2b5;
+  --rp-c-brand-dark: #6fae88;
+  --rp-c-brand-darker: #52926c;
+  --rp-c-brand-tint: #2c3f34;
+  --rp-c-link: #8fc7a6;
+
+  --rp-border-color: #2c2f26;
+  --rp-c-border: #2c2f26;
+  --rp-c-divider: #2c2f26;
+  --rp-c-divider-light: #232620;
+
+  --rp-c-text-code: #dce3d6;
+  --rp-c-text-code-bg: #2c2f26;
+
+  /* Raised against the page rather than sunk into it: the page is already the
+     transcript's colour, so a code block has to be lighter to read as one. */
+  --rp-code-block-bg: #171a14;
+  --rp-code-title-bg: #1c1f18;
+
+  --rp-home-hero-name-background: #dce3d6;
+  --rp-home-hero-name-color: #dce3d6;
+}
+
+::selection {
+  background: var(--rp-c-brand-tint);
 }
 
 .rspress-nav-search-button div {
@@ -65,20 +161,33 @@
   z-index: -1;
 }
 
-/* Buttons */
+/* Buttons. Squared off, and the filled one carries paper on accent rather than
+   ink on a light green, which is the contrast the site's own CTA uses. */
 .link_a7cea.button_e8e0d {
   font-size: 14px;
   height: max-content;
   min-width: max-content;
   padding: 0.4rem 0.75rem;
+  border-radius: 0;
 }
 
 .link_a7cea.button_e8e0d.brand_dc619.big_f7033 {
-  color: #0a0a0a;
+  color: #fcfbf6;
 }
 
 .button_e8e0d.brand_dc619 {
-  background: var(--rp-c-brand-light);
+  background: var(--rp-c-brand);
+  color: #fcfbf6;
+}
+
+.button_e8e0d.brand_dc619:hover {
+  background: var(--rp-c-brand-dark);
+  opacity: 1;
+}
+
+.dark .link_a7cea.button_e8e0d.brand_dc619.big_f7033,
+.dark .button_e8e0d.brand_dc619 {
+  color: #12140f;
 }
 
 .dark .button_e8e0d.alt_b0249 {
@@ -86,7 +195,7 @@
 }
 
 .dark .button_e8e0d.alt_b0249:hover {
-  background-color: #262626;
+  background-color: #1c1f18;
   opacity: 1;
 }
 
@@ -96,19 +205,19 @@
 
 /* Feature cards */
 .rspress-home-feature-card {
-  border-radius: 0.4rem !important;
+  border-radius: 0 !important;
   user-select: none;
 }
 
 /* Menu items */
 .menuItemActive_de63c {
-  background-color: var(--rp-c-bg-soft);
+  background-color: var(--rp-c-bg-mute);
   user-select: none;
 }
 
 .aside-link.aside-active,
 .aside-link.aside-active:hover {
-  background-color: var(--rp-c-bg-soft);
+  background-color: var(--rp-c-bg-mute);
   user-select: none;
 }
 
