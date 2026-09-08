@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "rspress build",
+    "build": "rspress build && npm run generate:seo",
     "deploy:static": "npx wrangler pages deploy /usr/src/app/doc_build --project-name=$PROJECT_NAME",
     "dev": "rspress dev",
     "format": "prettier --write .",

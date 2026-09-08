@@ -4,6 +4,7 @@ import { join, relative } from 'path'
 const BUILD_DIR = join(process.cwd(), 'doc_build')
 const SITEMAP_PATH = join(BUILD_DIR, 'sitemap.xml')
 const ROBOTS_PATH = join(BUILD_DIR, 'robots.txt')
+const LLMS_PATH = join(BUILD_DIR, 'llms.txt')
 
 interface SitemapUrl {
   loc: string
@@ -82,13 +83,27 @@ function escapeXml(str: string): string {
  */
 function getHostname(): string {
   const phase = process.env.PHASE || 'dev'
-  const hostname = process.env.HOSTNAME
+  // Every Linux shell exports HOSTNAME as the machine's name, so reading it
+  // unguarded picks up something like `battlemage` on a developer box and
+  // emits it into a real sitemap. A site host always has a dot in it; a bare
+  // machine name never does, so that is the test rather than a list of names
+  // to exclude. DOCS_HOSTNAME wins where it is set, and the deploy jobs can
+  // keep passing HOSTNAME.
+  const candidate = process.env.DOCS_HOSTNAME || process.env.HOSTNAME
+  const hostname =
+    candidate && (candidate.includes('.') || candidate.startsWith('localhost'))
+      ? candidate
+      : undefined
+
+  if (candidate && !hostname) {
+    console.warn(`Ignoring HOSTNAME="${candidate}": not a site hostname.`)
+  }
 
   switch (phase) {
     case 'live':
       if (!hostname) {
         console.error(
-          'ERROR: HOSTNAME environment variable is required for live deployments'
+          'ERROR: DOCS_HOSTNAME (or HOSTNAME) must be a site hostname for live deployments'
         )
         process.exit(1)
       }
@@ -189,6 +204,45 @@ function generateRobotsTxt(hostname: string, blockRobots: boolean): void {
 /**
  * Main function
  */
+/**
+ * Writes llms.txt: the page list, for a reader that is not a browser.
+ *
+ * Every page here is rendered by a client-side framework, so an agent that
+ * fetches a URL gets markup wrapped around its content and has to guess at the
+ * structure. This is the map it would otherwise have to infer, and a search
+ * product for agents publishing one is the least it can do.
+ */
+function generateLlmsTxt(hostname: string): void {
+  console.log('Generating llms.txt...')
+
+  const pages = findHtmlFiles(BUILD_DIR)
+    .map((file) => filePathToUrl(file, BUILD_DIR))
+    .filter((path) => !path.startsWith('/404'))
+    .sort()
+
+  const lines = [
+    '# Wuzzy',
+    '',
+    '> A search index for AI agents. Keyless and metered over x402, with onchain',
+    '> provenance on every result.',
+    '',
+    '## Docs',
+    '',
+    ...pages.map(
+      (path) => `- [${path === '/' ? 'Home' : path}](https://${hostname}${path})`
+    ),
+    '',
+    '## Notes',
+    '',
+    '- The API is metered with x402: an unpaid request answers HTTP 402 with the price.',
+    '- Every result carries a provenance block, and attested results carry an EAS uid.',
+    '',
+  ]
+
+  writeFileSync(LLMS_PATH, lines.join('\n'))
+  console.log(`✓ Generated llms.txt with ${pages.length} pages`)
+}
+
 function main(): void {
   console.log('Starting SEO file generation...')
   console.log(`Phase: ${process.env.PHASE || 'dev'}`)
@@ -216,6 +270,7 @@ function main(): void {
 
   generateSitemap(hostname)
   generateRobotsTxt(hostname, blockRobots)
+  generateLlmsTxt(hostname)
 
   console.log('✓ SEO file generation complete!')
 }
