@@ -125,6 +125,15 @@ function shouldBlockRobots(): boolean {
 }
 
 /**
+ * The origin these files advertise. A localhost build is served over plain
+ * HTTP, so emitting https there hands the reader URLs that cannot connect.
+ */
+function siteOrigin(hostname: string): string {
+  const scheme = hostname.startsWith('localhost') ? 'http' : 'https'
+  return `${scheme}://${hostname}`
+}
+
+/**
  * Generate sitemap.xml
  */
 function generateSitemap(hostname: string): void {
@@ -145,7 +154,7 @@ function generateSitemap(hostname: string): void {
       const priority = urlPath === '/' ? '1.0' : '0.8'
 
       return {
-        loc: `https://${hostname}${urlPath}`,
+        loc: `${siteOrigin(hostname)}${urlPath}`,
         lastmod,
         changefreq: 'weekly',
         priority
@@ -191,7 +200,7 @@ function generateRobotsTxt(hostname: string, blockRobots: boolean): void {
       'User-agent: *',
       'Allow: /',
       '',
-      `Sitemap: https://${hostname}/sitemap.xml`
+      `Sitemap: ${siteOrigin(hostname)}/sitemap.xml`
     ].join('\n')
     console.log(
       '✓ Generated robots.txt (allowing crawlers with sitemap reference)'
@@ -229,7 +238,7 @@ function generateLlmsTxt(hostname: string): void {
     '## Docs',
     '',
     ...pages.map(
-      (path) => `- [${path === '/' ? 'Home' : path}](https://${hostname}${path})`
+      (path) => `- [${path === '/' ? 'Home' : path}](${siteOrigin(hostname)}${path})`
     ),
     '',
     '## Notes',
