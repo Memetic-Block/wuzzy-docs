@@ -115,10 +115,15 @@ work outstanding. `pages` counts membership rows, `attestations` how many carry 
 ## POST /indexes
 
 See [Commission an index](/guide/indexes) for the fields and the reasoning. Returns `201` with
-the status report. Over the page cap returns `400`:
+the status report. A request carrying more URLs than one request may hold returns `400`, with
+the limit and what you asked for, so a client can split the list and retry:
 
 ```json
-{ "error": "this request covers 1200 pages; the cap is 1000", "pageCap": 1000, "requested": 1200 }
+{
+  "error": "this request carries 2101 URLs; 2000 is the most one request may carry. Split it.",
+  "requestUrlLimit": 2000,
+  "requested": 2101
+}
 ```
 
 ## POST /indexes/:reference/urls
@@ -147,7 +152,7 @@ asking; nothing is settled.
 | --- | --- |
 | `200` | Fine |
 | `201` | Index created |
-| `400` | Blank query, malformed `urls`, over the page cap, bad wallet or URL |
+| `400` | Blank query, malformed `urls`, too many URLs for one request, bad wallet or URL |
 | `402` | Payment required, absent, malformed or unmatched. Body carries `accepts` |
 | `403` | Verified payer may not read this index, or is not the owner. Never charged |
 | `404` | No such index |

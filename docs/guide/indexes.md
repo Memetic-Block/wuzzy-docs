@@ -39,8 +39,11 @@ Creation takes the pages, not a host to expand. The price is quoted in the `402`
 on the retry, so it has to be a pure function of the request body. A host that expanded to an
 unknown number of pages could not be priced before the crawl.
 
-There is a cap on how many pages one payment can commission. Over it, the API returns `400`
-with the cap and what you asked for, so a client can retry correctly.
+There is a limit on how many URLs one request may carry, because the body is parsed before the
+payment is checked. It is a transport bound, not a ceiling on how large an index may become:
+over it the API returns `400` with the limit and what you asked for, and the fix is to split
+the list across requests rather than to ask for less. Commission the first batch, then append
+the rest.
 
 ## Watch it fill
 
@@ -76,8 +79,8 @@ that resolved to the global index.
 
 ## What a commissioned crawl will not do
 
-**It does not discover.** `crawl --index` fetches exactly the URLs that were paid for. Link
-following would fetch pages nobody bought and overrun the page cap.
+**It does not discover.** A commissioned crawl fetches exactly the URLs that were paid for.
+Link following would fetch pages nobody bought and charge for pages nobody asked about.
 
 **It does not skip robots.** Robots is still read and still obeyed, because paying us cannot
 confer a right to fetch. A URL you paid for that robots disallows is not fetched, and you are
