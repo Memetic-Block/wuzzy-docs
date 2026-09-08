@@ -43,13 +43,8 @@ jobs:
 
       # Deploying is manual. This runner has no route to Nomad and none of the
       # cluster credentials, so the step below could only fail here. The job
-      # spec pulls from the internal registry by commit sha, so a deploy means
-      # getting this image there first, then running it from a machine with
-      # cluster access:
+      # spec pulls this image from ghcr by commit sha, so a deploy is stamping
+      # that sha in and submitting it from a machine with cluster access:
       #
+      #   ./operations/stamp-sha.sh <sha>
       #   nomad job run operations/wuzzy-docs-static-stage.hcl
-      #
-      # after substituting the two placeholders it carries:
-      #
-      #   sed -i "s/\[\[ .commit_timestamp \]\]/<iso 8601>/g" operations/wuzzy-docs-static-stage.hcl
-      #   sed -i "s/\[\[ .commit_sha \]\]/<sha>/g" operations/wuzzy-docs-static-stage.hcl

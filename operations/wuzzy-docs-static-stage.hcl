@@ -1,3 +1,11 @@
+# The deployed version is written into this file rather than passed in: the
+# cluster's Nomad does not support HCL2 variables, and the self-hosted runner
+# that used to substitute it was decommissioned. `operations/stamp-sha.sh`
+# rewrites it across both specs at once.
+#
+# Note the tag has no `sha-` prefix: this repository's CI publishes a bare
+# commit sha, unlike the wuzzy monorepo's.
+
 job "wuzzy-docs-static-stage" {
   datacenters = ["mb-hel"]
   type = "batch"
@@ -18,7 +26,7 @@ job "wuzzy-docs-static-stage" {
       driver = "docker"
 
       config {
-        image = "${CONTAINER_REGISTRY_ADDR}/memetic-block/wuzzy-docs:${VERSION}"
+        image = "ghcr.io/memetic-block/wuzzy-docs:8861c5372ec0c04bab3cdd933649e2e9b6b15dc1"
         entrypoint = [ "/workdir/entrypoint.sh" ]
         mount {
           type = "bind"
@@ -32,17 +40,6 @@ job "wuzzy-docs-static-stage" {
         PHASE="stage"
         HOSTNAME="docs-stage.wuzzy.io"
         PROJECT_NAME="wuzzy-docs-stage"
-        VERSION="[[ .commit_sha ]]"
-      }
-
-      template {
-        data = <<-EOF
-        {{- range service "container-registry" }}
-        CONTAINER_REGISTRY_ADDR="{{ .Address }}:{{ .Port }}"
-        {{- end }}
-        EOF
-        env = true
-        destination = "local/env"
       }
 
       vault {
