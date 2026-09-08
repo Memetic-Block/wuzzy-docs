@@ -9,7 +9,11 @@ env:
 
 jobs:
   push:
-    runs-on: self-hosted
+    # GitHub-hosted, so this repo no longer deploys itself. On the self-hosted
+    # runner this job could reach Nomad and the cluster-internal registry, which
+    # made tagging v* a deploy to docs.wuzzy.io. Here it only builds the image
+    # and publishes it to ghcr.io; releasing it is a manual step.
+    runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
@@ -19,8 +23,6 @@ jobs:
 
       - name: Build image
         run: |
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           docker build . \
             --file Dockerfile \
             --tag $IMAGE_NAME \
@@ -31,34 +33,33 @@ jobs:
 
       - name: Push image
         run: |
-          IMAGE_ID=$CONTAINER_REGISTRY_ADDR/${{ github.repository_owner }}/$IMAGE_NAME
+          # The cluster-internal registry is discovered through Consul and is not
+          # reachable from a GitHub-hosted runner, so ghcr.io is the only target.
           GHCR_IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           GHCR_IMAGE_ID=$(echo $GHCR_IMAGE_ID | tr '[A-Z]' '[a-z]')
 
-          # Strip git ref prefix from version
+          # Strip the git ref prefix, then the "v" from the tag name.
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-
-          # Strip "v" prefix from tag name
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=stage
-          echo IMAGE_ID=$IMAGE_ID
           echo GHCR_IMAGE_ID=$GHCR_IMAGE_ID
           echo VERSION=$VERSION
 
-          docker tag $IMAGE_NAME $IMAGE_ID:${GITHUB_SHA}
+          # By sha, because that is what the job spec pulls, and by tag, so a
+          # release can be found by the version it was cut as.
           docker tag $IMAGE_NAME $GHCR_IMAGE_ID:${GITHUB_SHA}
-          docker push $IMAGE_ID:${GITHUB_SHA}
+          docker tag $IMAGE_NAME $GHCR_IMAGE_ID:$VERSION
           docker push $GHCR_IMAGE_ID:${GITHUB_SHA}
+          docker push $GHCR_IMAGE_ID:$VERSION
 
-      - name: Deploy new version
-        run: |
-          COMMIT_TIMESTAMP_ISO=$(date -u -d "${{ github.event.head_commit.timestamp }}" +"%Y-%m-%dT%H:%M:%SZ")
-          sed -i "s/\[\[ .commit_timestamp \]\]/${COMMIT_TIMESTAMP_ISO}/g" operations/wuzzy-docs-static-live.hcl
-          sed -i "s/\[\[ .commit_sha \]\]/${{ github.sha }}/g" operations/wuzzy-docs-static-live.hcl
-
-          nomad job run operations/wuzzy-docs-static-live.hcl
+      # Deploying is manual. This runner has no route to Nomad and none of the
+      # cluster credentials, so the step below could only fail here. The job
+      # spec pulls from the internal registry by commit sha, so a deploy means
+      # getting this image there first, then running it from a machine with
+      # cluster access:
+      #
+      #   nomad job run operations/wuzzy-docs-static-live.hcl
+      #
+      # after substituting the two placeholders it carries:
+      #
+      #   sed -i "s/\[\[ .commit_timestamp \]\]/<iso 8601>/g" operations/wuzzy-docs-static-live.hcl
+      #   sed -i "s/\[\[ .commit_sha \]\]/<sha>/g" operations/wuzzy-docs-static-live.hcl
