@@ -240,3 +240,22 @@
     font-size: 1.2rem !important;
   }
 }
+
+/* Feature-card icons.
+ *
+ * The stock theme sizes these for an emoji: a 3rem glyph in a 3rem box. These
+ * are short mono tags naming what each card is about, so they are set in the
+ * body face at a size that fits four characters, and in the accent, which is
+ * what makes them read as labels on a receipt rather than as shrunken icons.
+ */
+.rspress-home-feature-icon {
+  font-family: var(--rp-font-family-base);
+  font-size: 1.125rem !important;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--rp-c-brand);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: auto !important;
+}
