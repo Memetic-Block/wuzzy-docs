@@ -26,7 +26,7 @@ job "wuzzy-docs-static-stage" {
       driver = "docker"
 
       config {
-        image = "ghcr.io/memetic-block/wuzzy-docs:8a9a1dc48fba80eaf237372d69a3cb67f6e9ed62"
+        image = "ghcr.io/memetic-block/wuzzy-docs:fcc6cf5c5d9535987239e8b134a7c0fde4f42840"
         entrypoint = [ "/workdir/entrypoint.sh" ]
         mount {
           type = "bind"
