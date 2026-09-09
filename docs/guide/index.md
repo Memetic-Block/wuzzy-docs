@@ -73,19 +73,36 @@ bun run demo wallet                       # creates a wallet outside the repo
 bun run demo search "how do I deploy a contract on Base"
 ```
 
-Under the hood it is `x402-fetch`, which is the shortest path if you are writing your own.
-Note `createSigner` rather than a hand-built viem wallet client: it is what the library's types
-expect, and it keeps chain selection in one place.
+Under the hood it is [`@x402/fetch`](https://www.npmjs.com/package/@x402/fetch), which is the
+shortest path if you are writing your own.
+
+**This API speaks x402 protocol version 1.** The scoped packages default to version 2, so say
+which one you mean: the `V1` scheme from `@x402/evm/v1`, the v1 network name `base` rather than
+the CAIP-2 `eip155:8453`, and `x402Version: 1`. Get one of those wrong and the payment is built
+for a protocol this server is not answering, which surfaces as a rejected payment rather than
+as anything naming a version.
+
+`spendControls` is worth setting rather than leaving off. It is a ceiling on what one request
+may spend without asking again, and there is no default worth trusting: quote first, then set
+it deliberately.
 
 ```ts
-import { createSigner, wrapFetchWithPayment } from 'x402-fetch';
+import { wrapFetchWithPaymentFromConfig } from '@x402/fetch';
+import { ExactEvmSchemeV1 } from '@x402/evm/v1';
+import { privateKeyToAccount } from 'viem/accounts';
 
-const signer = await createSigner('base', process.env.WALLET_PRIVATE_KEY as `0x${string}`);
+const account = privateKeyToAccount(process.env.WALLET_PRIVATE_KEY as `0x${string}`);
 
-// The third argument is a ceiling, in atomic USDC units, on what one request
-// may spend without asking again. There is no default worth trusting: quote
-// first, then set it deliberately.
-const paid = wrapFetchWithPayment(fetch, signer, 5_000_000n);
+const paid = wrapFetchWithPaymentFromConfig(fetch, {
+  schemes: [
+    {
+      network: 'base', // the v1 name, not eip155:8453
+      client: new ExactEvmSchemeV1(account),
+      x402Version: 1,
+    },
+  ],
+  spendControls: { maxAmountPerPayment: '$0.10' },
+});
 
 const response = await paid('https://api.wuzzy.io/search', {
   method: 'POST',
