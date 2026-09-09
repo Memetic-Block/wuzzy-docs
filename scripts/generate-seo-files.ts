@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, statSync, writeFileSync } from 'fs'
 import { join, relative } from 'path'
+import { metaTags } from '../head'
 
 const BUILD_DIR = join(process.cwd(), 'doc_build')
 const SITEMAP_PATH = join(BUILD_DIR, 'sitemap.xml')
@@ -230,10 +231,11 @@ function generateLlmsTxt(hostname: string): void {
     .sort()
 
   const lines = [
-    '# Wuzzy',
+    '# Wuzzy Docs',
     '',
-    '> A search index for AI agents. Keyless and metered over x402, with onchain',
-    '> provenance on every result.',
+    // The one description, read from the same place the meta tags read it, so
+    // the file an agent fetches and the card a human sees cannot disagree.
+    `> ${metaTags.description}`,
     '',
     '## Docs',
     '',
@@ -245,6 +247,13 @@ function generateLlmsTxt(hostname: string): void {
     '',
     '- The API is metered with x402: an unpaid request answers HTTP 402 with the price.',
     '- Every result carries a provenance block, and attested results carry an EAS uid.',
+    // The endpoints, prices and payment handshake are published by the API
+    // itself, so this file names where they are rather than restating them and
+    // going stale the day the meter is reconfigured.
+    '- Endpoints, prices and the payment handshake: https://api.wuzzy.io/llms.txt',
+    // In plain text on purpose. The site footer encodes its mailto against
+    // scrapers, which also hides it from the agents this file is written for.
+    '- Contact: build@wuzzy.io',
     '',
   ]
 
