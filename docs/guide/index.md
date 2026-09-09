@@ -1,6 +1,6 @@
 # Quickstart
 
-Wuzzy is a search index for AI agents. Every result carries onchain proof of what was crawled
+Wuzzy is provable, decentralized search. Every result carries onchain proof of what was crawled
 and when, so an agent can check what it bought instead of trusting the operator.
 
 There is no account and no API key. A signed payment is the only credential.
@@ -26,9 +26,11 @@ curl -sS -X POST https://api.wuzzy.io/search \
       "maxAmountRequired": "10000",
       "resource": "https://api.wuzzy.io/search",
       "description": "One Wuzzy search query with onchain provenance",
-      "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "mimeType": "application/json",
+      "payTo": "0x0Deb462437ab46F703fcd15F9cf9c9Ea6472EAcB",
       "maxTimeoutSeconds": 60,
-      "mimeType": "application/json"
+      "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "extra": { "name": "USD Coin", "version": "2" }
     }
   ]
 }
